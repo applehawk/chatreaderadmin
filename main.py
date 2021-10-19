@@ -6,25 +6,40 @@ from config import *
 
 choosed_theme = ""
 
-class SubscribtionPriceMenuSelection(BaseMessage):
-    LABEL = ""
-
+class PaymentMethodMenu(BaseMessage):
     def __init__(self, navigation: NavigationHandler) -> None:
         """Init StartMessage class."""
         super().__init__(navigation, StartMessage.LABEL)
-        self.add_button(label='1 неделя за 1499 руб.', callback=None)
-        self.add_button(label='2 недели за 1999 руб.', callback=None)
-        self.add_button(label='1 месяц за 2999 руб.', callback=None, new_row=True)
-        self.add_button(label='3 месяца за 8089 руб.', callback=None)
-        self.add_button(label='6 месяцев за 15289 руб.', callback=None)
-        self.add_button(label='1 год за 28789 руб.', callback=None)
+        self.add_button(label='YooMoney', callback=None)
         # 'back' button goes back to previous menu
         self.add_button_back()
         self.add_button_home()
 
     def update(self) -> str:
         """Update message content."""
-        return "Вы выбрали {}"
+        return "Вы способ оплаты"
+
+class SubscribtionPriceMenuSelection(BaseMessage):
+    LABEL = ""
+
+    def __init__(self, navigation: NavigationHandler) -> None:
+        """Init StartMessage class."""
+        super().__init__(navigation, StartMessage.LABEL)
+        paymenu = PaymentMethodMenu(navigation)
+
+        self.add_button(label='1 неделя за 1499 руб.', callback=paymenu)
+        self.add_button(label='2 недели за 1999 руб.', callback=paymenu)
+        self.add_button(label='1 месяц за 2999 руб.', callback=paymenu, new_row=True)
+        self.add_button(label='3 месяца за 8089 руб.', callback=paymenu)
+        self.add_button(label='6 месяцев за 15289 руб.', callback=paymenu)
+        self.add_button(label='1 год за 28789 руб.', callback=paymenu)
+        # 'back' button goes back to previous menu
+        self.add_button_back()
+        self.add_button_home()
+
+    def update(self) -> str:
+        """Update message content."""
+        return "Выберите подписку"
 
 
 class SubscribtionMenuSelectSubject(BaseMessage):
