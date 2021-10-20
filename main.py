@@ -4,8 +4,6 @@
 from telegram_menu import BaseMessage, TelegramMenuSession, NavigationHandler, ButtonType, MenuButton
 from config import *
 
-#choosed_theme = ""
-
 class SharedState():
     def __init__(self):
         self.choosed_subscribtion: str = ""
