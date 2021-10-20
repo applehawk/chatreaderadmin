@@ -3,11 +3,13 @@
 # This program is dedicated to the public domain under the CC0 license.
 from telegram_menu import BaseMessage, TelegramMenuSession, NavigationHandler, ButtonType, MenuButton
 from config import *
+from models import *
 
 class SharedState():
     def __init__(self):
         self.choosed_subscribtion: str = ""
         self.choosed_subject: str = ""
+
 
 class PaymentMethodMenu(BaseMessage):
     LABEL = "Способ оплаты"
