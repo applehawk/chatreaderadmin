@@ -4,12 +4,21 @@
 from telegram_menu import BaseMessage, TelegramMenuSession, NavigationHandler, ButtonType, MenuButton
 from config import *
 
-choosed_theme = ""
+#choosed_theme = ""
+
+class SharedState():
+    def __init__(self):
+        self.choosed_subscribtion: str = ""
+        self.choosed_subject: str = ""
 
 class PaymentMethodMenu(BaseMessage):
-    def __init__(self, navigation: NavigationHandler) -> None:
+    LABEL = "Способ оплаты"
+    def __init__(self, navigation: NavigationHandler, shared: SharedState) -> None:
         """Init StartMessage class."""
-        super().__init__(navigation, StartMessage.LABEL)
+        super().__init__(navigation, PaymentMethodMenu.LABEL)
+
+        self.shared = shared
+
         self.add_button(label='YooMoney', callback=None)
         # 'back' button goes back to previous menu
         self.add_button_back()
@@ -17,45 +26,63 @@ class PaymentMethodMenu(BaseMessage):
 
     def update(self) -> str:
         """Update message content."""
-        return "Вы способ оплаты"
+        return f"""Вы выбрали подписку: {self.shared.choosed_subscribtion} и тему: {self.shared.choosed_subject}
+        
+Выберите способ оплаты:
+        """
 
 class SubscribtionPriceMenuSelection(BaseMessage):
-    LABEL = ""
-
-    def __init__(self, navigation: NavigationHandler) -> None:
+    LABEL = "Выбрать подписку"
+    
+    def __init__(self, navigation: NavigationHandler, shared: SharedState) -> None:
         """Init StartMessage class."""
-        super().__init__(navigation, StartMessage.LABEL)
-        paymenu = PaymentMethodMenu(navigation)
+        super().__init__(navigation, SubscribtionPriceMenuSelection.LABEL)
+        self.paymenu = PaymentMethodMenu(navigation, shared)
+        self.shared = shared
 
-        self.add_button(label='1 неделя за 1499 руб.', callback=paymenu)
-        self.add_button(label='2 недели за 1999 руб.', callback=paymenu)
-        self.add_button(label='1 месяц за 2999 руб.', callback=paymenu, new_row=True)
-        self.add_button(label='3 месяца за 8089 руб.', callback=paymenu)
-        self.add_button(label='6 месяцев за 15289 руб.', callback=paymenu)
-        self.add_button(label='1 год за 28789 руб.', callback=paymenu)
+        paymenu = self.paymenu
+
+        self.add_button(label='1 неделя за 1499 руб.')
+        self.add_button(label='2 недели за 1999 руб.')
+        self.add_button(label='1 месяц за 2999 руб.', new_row=True)
+        self.add_button(label='3 месяца за 8089 руб.')
+        self.add_button(label='6 месяцев за 15289 руб.')
+        self.add_button(label='1 год за 28789 руб.')
+
+        self.add_button(PaymentMethodMenu.LABEL, self.paymenu)
         # 'back' button goes back to previous menu
         self.add_button_back()
         self.add_button_home()
 
+    def text_input(self, text: str) -> None:
+        self.shared.choosed_subscribtion = text
+        self._navigation.select_menu_button(PaymentMethodMenu.LABEL)
+
     def update(self) -> str:
-        """Update message content."""
-        return "Выберите подписку"
+        content = f"{self.shared.choosed_subject}" if self.shared.choosed_subject else ""
+        return f"Вы выбрали: {content} Выберите подписку"
 
 
 class SubscribtionMenuSelectSubject(BaseMessage):
     LABEL = "💳 Оформить подписку"
 
-    def __init__(self, navigation: NavigationHandler) -> None:
+    def __init__(self, navigation: NavigationHandler, shared: SharedState) -> None:
         """Init StartMessage class."""
-        super().__init__(navigation, StartMessage.LABEL)
+        super().__init__(navigation, SubscribtionMenuSelectSubject.LABEL)
+        self.shared = shared
+        self.price_menu = SubscribtionPriceMenuSelection(navigation, shared)
 
-        price_menu = SubscribtionPriceMenuSelection(navigation)
-        self.add_button(label='Digital', callback=price_menu)
-        self.add_button(label='Seo', callback=price_menu)
-        self.add_button(label='Контекст', callback=price_menu, new_row=True)
-        self.add_button(label='Таргет', callback=price_menu)
+        self.add_button('Digital')
+        self.add_button('Seo')
+        self.add_button('Контекст', new_row=True)
+        self.add_button('Таргет')
+        self.add_button(SubscribtionPriceMenuSelection.LABEL, self.price_menu)
         # 'back' button goes back to previous menu
         self.add_button_back()
+
+    def text_input(self, text: str) -> None:
+        self.shared.choosed_subject = text
+        self._navigation.select_menu_button(SubscribtionPriceMenuSelection.LABEL)
 
     def update(self) -> str:
         """Update message content."""
@@ -73,7 +100,8 @@ class StartMessage(BaseMessage):
     def __init__(self, navigation: NavigationHandler) -> None:
         """Init StartMessage class."""
         super().__init__(navigation, StartMessage.LABEL)
-        subscribtion_menu = SubscribtionMenuSelectSubject(navigation)
+        shared = SharedState()
+        subscribtion_menu = SubscribtionMenuSelectSubject(navigation, shared=shared)
         self.add_button(label="💳 Оформить подписку", callback=subscribtion_menu, btype=ButtonType.MESSAGE)
         self.add_button(label="📱 Перейти в меню", callback=self.goto_menu_callback, btype=ButtonType.PICTURE, new_row=True)
 
